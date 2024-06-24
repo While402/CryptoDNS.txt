@@ -2,7 +2,7 @@ from colorama import Fore, Back, Style
 import requests
 import json
 import colorama 
-
+import time
 
 def parseJsonConfig():
     configFileJson = json.loads(open("config.json").read())
@@ -86,16 +86,25 @@ def coinLoreLoadPrices():
 
 def main():
     colorama.init()
-    cryptoPriceList = json.dumps(getCryptoPriceList(), separators=(',', ':'))
+    rewriteTimeout = parseJsonConfig()["rewriteTimeout"]
     
-    dnsRecord = searchCryptoDNSRecord()
-    if dnsRecord[0] == 200:
-        print("Overwriting DNS Record...")
+    while True:
+        cryptoPriceList = json.dumps(getCryptoPriceList(), separators=(',', ':'))
         
-        dnsRecordID = str(dnsRecord[1]['result'][0]['id'])
-        makeNewTxtRecordCF(cryptoPriceList, overwriteRecordID = dnsRecordID)
-    else:
-        print("Making new DNS Record...")
+        dnsRecord = searchCryptoDNSRecord()
+        if dnsRecord[0] == 200:
+            print("Overwriting DNS Record...")
+            
+            dnsRecordID = str(dnsRecord[1]['result'][0]['id'])
+            makeNewTxtRecordCF(cryptoPriceList, overwriteRecordID = dnsRecordID)
+        elif dnsRecord[0] == 404:
+            print("Making new DNS Record...")
+            makeNewTxtRecordCF(cryptoPriceList)
+        else:
+            print("CF ERROR!")
         
-        makeNewTxtRecordCF(cryptoPriceList, overwriteRecordID = dnsRecordID)
-main()
+        print(f"Sleep for {Style.BRIGHT + Fore.CYAN + str(rewriteTimeout) + Style.RESET_ALL} seconds...")
+        time.sleep(rewriteTimeout)
+
+if __name__ == "__main__":
+    main()
