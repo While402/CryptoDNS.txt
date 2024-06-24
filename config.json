@@ -3,5 +3,6 @@
 "zone_id": "",
 "cf_email": "",
 "curencyList": ["BTC", "ETH", "TRX", "DOGE", "SOL", "TON"],
-"dnsRecordHostname":""
+"dnsRecordHostname":"cryptoDNS",
+"rewriteTimeout":600
 }
