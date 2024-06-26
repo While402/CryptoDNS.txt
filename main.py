@@ -108,7 +108,7 @@ def main():
             dnsRecordID = str(dnsRecord[1]['result'][0]['id'])
             makeNewTxtRecordCF(cryptoPriceList, overwriteRecordID = dnsRecordID)
         elif dnsRecord[0] == 500:
-            print(f"Get error while sending request to CloudFlare: {Style.BRIGHT + Fore.RED + str(dnsRecord[1]) + Style.RESET_ALL}"
+            print(f"Get error while sending request to CloudFlare: {Style.BRIGHT + Fore.RED + str(dnsRecord[1]) + Style.RESET_ALL}")
         elif dnsRecord[0] == 404:
             print("Making new DNS Record...")
             makeNewTxtRecordCF(cryptoPriceList)
