@@ -1,4 +1,6 @@
 from colorama import Fore, Back, Style
+from datetime import datetime
+import pytz
 import requests
 import json
 import colorama 
@@ -51,8 +53,12 @@ def makeNewTxtRecordCF(content, overwriteRecordID = '', config = parseJsonConfig
         "X-Auth-Email": config["cf_email"],
         "X-Auth-Key": config["api_token"]
     }
-
-    response = requests.request("PUT", cloudflareApiUrl, json=jsonPayload, headers=headers)
+    
+    try:
+        response = requests.request("PUT", cloudflareApiUrl, json=jsonPayload, headers=headers)
+    except Exception as err:
+        return [500,err]
+    
     jsonResult = response.json()
     
     if jsonResult["success"] == True:
@@ -76,7 +82,11 @@ def getCryptoPriceList(cryptoList = parseJsonConfig()["curencyList"]):
     
 def coinLoreLoadPrices():
     url = "https://api.coinlore.net/api/tickers/"
-    responseJson = requests.get(url).json()
+    
+    try:
+        responseJson = requests.get(url).json()
+    except Exception as err:
+        return [500,err]
     
     outCryptoDict = {}
     for cryptoCurency in responseJson["data"]:
@@ -87,9 +97,9 @@ def coinLoreLoadPrices():
 def main():
     colorama.init()
     rewriteTimeout = parseJsonConfig()["rewriteTimeout"]
-    
+
     while True:
-        cryptoPriceList = json.dumps(getCryptoPriceList(), separators=(',', ':'))
+        cryptoPriceList = json.dumps({"crypto": getCryptoPriceList(), "updateTime": datetime.now(pytz.timezone('Europe/Moscow')).strftime("%d %B %Y %H:%M")}, separators=(',', ':'))
         
         dnsRecord = searchCryptoDNSRecord()
         if dnsRecord[0] == 200:
@@ -97,11 +107,13 @@ def main():
             
             dnsRecordID = str(dnsRecord[1]['result'][0]['id'])
             makeNewTxtRecordCF(cryptoPriceList, overwriteRecordID = dnsRecordID)
+        elif dnsRecord[0] == 500:
+            print(f"Get error while sending request to CloudFlare: {Style.BRIGHT + Fore.RED + str(dnsRecord[1]) + Style.RESET_ALL}"
         elif dnsRecord[0] == 404:
             print("Making new DNS Record...")
             makeNewTxtRecordCF(cryptoPriceList)
         else:
-            print("CF ERROR!")
+            print("Untitled error!")
         
         print(f"Sleep for {Style.BRIGHT + Fore.CYAN + str(rewriteTimeout) + Style.RESET_ALL} seconds...")
         time.sleep(rewriteTimeout)
