@@ -99,7 +99,8 @@ def main():
     rewriteTimeout = parseJsonConfig()["rewriteTimeout"]
 
     while True:
-        cryptoPriceList = json.dumps({"crypto": getCryptoPriceList(), "updateTime": datetime.now(pytz.timezone('Europe/Moscow')).strftime("%d %B %Y %H:%M")}, separators=(',', ':'))
+        cryptoPriceList = json.dumps({"crypto": getCryptoPriceList(), "updateTime": datetime.now(pytz.timezone('Europe/Moscow')).strftime("%d %B %Y %H:%M")}, separators=(',', ':')).replace('\\', '').replace('"',"'")
+        print(cryptoPriceList)
         
         dnsRecord = searchCryptoDNSRecord()
         if dnsRecord[0] == 200:
